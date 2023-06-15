@@ -1,0 +1,11 @@
+
+html {
+    font-size: 1.5rem;
+}
+
+.container {
+    background-color: antiquewhite;
+    display: grid;
+    grid-template: repeat(25, 1rem) / repeat(10, 1rem);
+    width: fit-content;
+}

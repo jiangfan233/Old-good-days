@@ -1,0 +1,23 @@
+[package]
+name = "tetris-rewrite"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[lib]
+crate-type = ["cdylib"]
+
+
+[dependencies]
+# dioxus = "0.3.2"
+# dioxus-web = "0.3.2"
+# gloo = "0.8.0"
+# gloo-timers = "0.2.6"
+getrandom = { version = "0.2.10", features = ["js"] }
+js-sys = "0.3.64"
+rand = "0.8.5"
+wasm-bindgen = { version = "0.2.87", features = [] }
+# Document, Element, HtmlElement, Window, KeyboardEvent
+web-sys = { version = "0.3.64", features = ["Document", "Window", "HtmlElement", "KeyboardEvent", "console"] }
+
