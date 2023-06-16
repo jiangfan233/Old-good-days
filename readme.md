@@ -1,4 +1,4 @@
-### Keep hungury, keep stupid.
+### Keep hungry, keep stupid.
 
 ##### version: 0.5
 
