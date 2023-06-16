@@ -31,5 +31,21 @@ jobs:
           cargo check
           cargo test
           wasm-pack build --target web
-          tree
-    
+          cp ./index.html ./pkg/index.html
+          cp ./index.css ./pkg/index.css
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v1
+        with:
+          path: ./pkg
+
+  # Deployment job
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v2
