@@ -35,19 +35,4 @@ jobs:
         cargo test
 
     - name: wasm pack
-    - run: wasm-pack build --target web
-
-    - name: show file structure
-    - run: tree
-
-    # Deployment job
-    deploy:
-      environment:
-        name: github-pages
-        url: ${{ steps.deployment.outputs.page_url }}
-      runs-on: ubuntu-latest
-      needs: build
-      steps:
-        - name: Deploy to GitHub Pages
-          id: deployment
-          uses: actions/deploy-pages@v2
+    - run: wasm-pack build --target web  && tree
