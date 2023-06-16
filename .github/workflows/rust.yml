@@ -16,11 +16,11 @@ jobs:
     
     steps:
     - uses: actions/checkout@v3
-    - name: install wasm-pack
-      run: cargo install wasm-pack
-    - name: add getrandom
-      run: cargo add getrandom --features js && cargo add rand && cargo add wasm-bindgen && cargo add web-sys --features web-sys/Document
-    - name: add features
-      run: cargo add web-sys  --features web-sys/Window && cargo add web-sys  --features web-sys/HtmlElement && cargo add web-sys  --features   web-sys/KeyboardEvent && cargo add web-sys  --features   web-sys/console
-    - name: test
-      run: cargo test
+
+    - uses: Swatinem/rust-cache@v2
+      with:
+        key: ${{ hashFiles('**/Cargo.toml') }}
+
+    - run: |
+        cargo check
+        cargo test
