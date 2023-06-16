@@ -33,7 +33,7 @@ impl Add<Pos> for &Shape {
     type Output = Shape;
 
     fn add(self, rhs: Pos) -> Self::Output {
-        let Pos(a, b) = rhs;
+        let Pos(a, b) = self.anchor;
         Shape {
             anchor: Pos(a + rhs.0, b + rhs.1),
             typ: self.typ,
@@ -85,24 +85,26 @@ impl Shape {
             positions: self
                 .positions
                 .iter()
-                .map(|Pos(x, y)| Pos(a + b - y, b + x - a))
+                .map(|Pos(x, y)| Pos(-y + a + b, b + x - a))
                 .collect(),
             anchor: self.anchor,
             typ: self.typ,
         }
     }
 
-    pub fn remove(&self, y:i8) {
-        self.positions
+    pub fn remove(&mut self, y:i8) {
+        self.positions = self.positions
             .iter()
+            .copied()
             .filter(|pos| pos.1 != y)
             .map(|pos| {
                 if pos.1 < y {
                     Pos(pos.0, pos.1 + 1)
                 } else {
-                    *pos
+                    pos
                 }
-            });
+            })
+            .collect();
             
     }
 

@@ -1,6 +1,7 @@
 use wasm_bindgen::prelude::wasm_bindgen;
+use web_sys::console;
 
-use crate::{pos::Pos, shape::Shape};
+use crate::{pos::Pos, shape::Shape, persist::{Persist, PersistedOrigin}};
 use std::mem::replace;
 
 pub enum Direction {
@@ -15,6 +16,12 @@ pub struct Tetris {
     pub width: u8,
     pub height: u8,
     pub failed: bool,
+}
+
+impl Persist for Tetris {
+    fn ptr(&self) -> crate::persist::PersistedOrigin {
+        PersistedOrigin
+    }
 }
 
 
@@ -40,6 +47,7 @@ impl Tetris {
             fixed_shapes: vec![],
             failed: false,
             width,
+
             height,
         }
     }
@@ -48,6 +56,7 @@ impl Tetris {
     pub fn tick(&mut self) -> Option<Shape> {
         let new_shape = &self.current_shape + Pos(0, 1);
 
+
         if !self.could_move(&new_shape) {
             // need to change current shape.
             // and put the old shape into fixed_shapes
@@ -55,7 +64,6 @@ impl Tetris {
                 &mut self.current_shape,
                 &Shape::random_shape() + Pos((self.width / 2 - 1) as i8, 0),
             );
-            let res = Some(fixed_shape.clone());
             self.fixed_shapes.push(fixed_shape);
 
             self.remove_full_lines();
@@ -63,10 +71,6 @@ impl Tetris {
             if self.is_colliding_with(&self.current_shape) {
                 // Game over
                 self.failed = true;
-                // None
-            } else {
-                // Some(fixed_shape)
-                // res
             }
             None
         } else {
@@ -126,12 +130,12 @@ impl Tetris {
             == self.width as usize
     }
 
-    pub fn remove_full_lines(&self) {
+    pub fn remove_full_lines(&mut self) {
         for y in 0..self.height {
             if self.is_line_full(y as i8) {
                 self.fixed_shapes
-                    .iter()
-                    .for_each(|shape| shape.remove(y as i8))
+                    .iter_mut()
+                    .for_each(|shape: &mut Shape| shape.remove(y as i8))
             }
         }
     }

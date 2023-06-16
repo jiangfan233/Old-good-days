@@ -1,11 +1,15 @@
 #![allow(non_snake_case)]
+mod persist;
 mod pos;
+mod ref_container;
 mod shape;
+mod state;
 mod tetris;
 
 use js_sys::Function;
 use pos::Pos;
 use shape::Shape;
+use state::{use_state, State};
 use std::convert::AsRef;
 use std::fmt;
 use tetris::{Direction, Tetris};
@@ -22,18 +26,6 @@ struct Timer {
     clear: Closure<dyn Fn(Window)>,
 }
 
-struct ElementData {
-    node: Element,
-    pos: Pos,
-}
-
-enum Behavior {
-    MoveLeft,
-    MoveRight,
-    MoveDown,
-    Rotate,
-}
-
 #[wasm_bindgen(start)]
 fn run() -> Result<(), JsValue> {
     let window = web_sys::window().expect("should have a window in this context");
@@ -41,15 +33,15 @@ fn run() -> Result<(), JsValue> {
 
     let body = document.body().unwrap();
 
-    let tetris = Tetris::default();
+    let tetris = use_state(|| Tetris::default());
 
     let container = create_div(&document, "");
 
-    let blocks = append_blocks(&document, &tetris);
+    let blocks = use_state(|| append_blocks(&document, &tetris.value()));
 
     container.set_class_name("container");
 
-    container.append_with_node(&blocks).unwrap();
+    container.append_with_node(&blocks.value()).unwrap();
     body.prepend_with_node_1(&container).unwrap();
 
     add_keydown_listener(&document, &tetris, &blocks);
@@ -58,18 +50,15 @@ fn run() -> Result<(), JsValue> {
     Ok(())
 }
 
-fn ticker(window: &Window, tetris: &Tetris, blocks: &js_sys::Array) -> Timer {
+fn ticker(window: &Window, tetris: &State<Tetris>, blocks: &State<js_sys::Array>) -> Timer {
     let mut tetris = tetris.clone();
-    let mut blocks = blocks.clone();
+    let blocks = blocks.clone();
     let t = Closure::<dyn FnMut()>::new(move || {
-        if let Some(prev_shape) = tetris.tick() {
-            update_dom(
-                &blocks,
-                &prev_shape,
-                &tetris.current_shape,
-                Behavior::MoveDown,
-            );
-        }
+        tetris.set(|mut t| {
+            t.tick();
+            t
+        });
+        update_dom(&blocks, &tetris);
     });
 
     let timer = window
@@ -101,53 +90,63 @@ fn create_div(document: &Document, text: &str) -> Element {
     val
 }
 
-fn add_keydown_listener(document: &Document, tetris: &Tetris, blocks: &js_sys::Array) {
+fn add_keydown_listener(
+    document: &Document,
+    tetris: &State<Tetris>,
+    blocks: &State<js_sys::Array>,
+) {
     let mut tetris = tetris.clone();
     let blocks = blocks.clone();
 
-    let dyn_handle_keydown =
-        Closure::<dyn FnMut(KeyboardEvent)>::new(move |e: KeyboardEvent| match e.code().as_str() {
+    let dyn_handle_keydown = Closure::<dyn FnMut(KeyboardEvent)>::new(move |e: KeyboardEvent| {
+        match e.code().as_str() {
             "ArrowLeft" => {
-                if let Some(shape) = tetris.shift(Direction::Left) {
-                    update_dom(&blocks, &shape, &tetris.current_shape, Behavior::MoveLeft);
-                }
+                tetris.set(|mut t| {
+                    t.shift(Direction::Left);
+                    t
+                });
             }
             "ArrowRight" => {
-                if let Some(shape) = tetris.shift(Direction::Right) {
-                    update_dom(&blocks, &shape, &tetris.current_shape, Behavior::MoveRight);
-                }
+                tetris.set(|mut t| {
+                    t.shift(Direction::Right);
+                    t
+                });
             }
             "ArrowUp" => {
-                if let Some(shape) = tetris.rotate() {
-                    update_dom(&blocks, &shape, &tetris.current_shape, Behavior::Rotate);
-                }
+                tetris.set(|mut t| {
+                    t.rotate();
+                    t
+                });
             }
             "ArrowDown" => {
-                js_sys::eval("console.log('dsadasd')").expect("err");
+                // js_sys::eval("console.log('dsadasd')").expect("err");
+                tetris.set(|mut t| {
+                    t.tick();
+                    t
+                });
             }
             _ => {
-                js_sys::eval("console.log('HHHHHHHHHHHHHH')").expect("UNCH");
+                // js_sys::eval("console.log('HHHHHHHHHHHHHH')").expect("UNCH");
+                // console::log_1(&"Hello using web-sys".into());
+                console::log_1(&e.code().into());
             }
-        });
+        }
+        update_dom(&blocks, &tetris);
+    });
 
     document.set_onkeydown(Some(dyn_handle_keydown.as_ref().unchecked_ref()));
 
     // prevent this closure being dropped!!!
     dyn_handle_keydown.forget();
-
 }
 
-fn update_dom(blocks: &Array, prev_shape: &Shape, current_shape: &Shape, behavior: Behavior) {
-    let nodes = blocks.iter().map(Element::from);
+fn update_dom(blocks: &State<Array>, tetris: &State<Tetris>) {
+    let current_shape = &tetris.value().current_shape;
+    let fixed_shapes = &tetris.value().fixed_shapes;
 
-    nodes.for_each(|node| {
-        if prev_shape
-            .positions
-            .iter()
-            .any(|pos| node.get_attribute("key").unwrap_or("null".to_string()) == pos.key())
-        {
-            node.set_inner_html("");
-        }
+    blocks.value().iter().map(Element::from).for_each(|node| {
+        node.set_inner_html("");
+
         if current_shape
             .positions
             .iter()
@@ -155,5 +154,41 @@ fn update_dom(blocks: &Array, prev_shape: &Shape, current_shape: &Shape, behavio
         {
             node.set_inner_html(current_shape.typ);
         }
+
+        fixed_shapes.iter().for_each(|shape| {
+            if shape
+                .positions
+                .iter()
+                .any(|pos| {
+                    node.get_attribute("key").unwrap_or("null".to_string()) == pos.key()
+                })
+            {
+                node.set_inner_html(shape.typ);
+            }
+        });
+
     })
+}
+
+mod test {
+    use crate::{state::use_state, tetris::Tetris};
+
+    #[test]
+    fn test() {
+        let mut tetris = use_state(|| Tetris::default());
+        tetris.set(|mut t: Tetris| {
+            t.tick();
+            t.tick();
+            t.tick();
+            print!("{:#?}", t.current_shape);
+            if let Some(old_shape) = t.rotate() {
+                // println!("{:#?}", old_shape);
+            } else {
+                println!("can not rotate");
+            }
+            print!("{:#?}", t.current_shape);
+            t
+        });
+
+    }
 }
