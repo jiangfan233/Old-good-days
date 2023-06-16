@@ -1,0 +1,26 @@
+name: Rust
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    - name: install wasm-pack
+      run: cargo install wasm-pack
+    - name: add getrandom
+      run: cargo add getrandom --features js && cargo add rand && cargo add wasm-bindgen && cargo add web-sys --features web-sys/Document
+    - name: add features
+      run: cargo add web-sys  --features web-sys/Window && cargo add web-sys  --features web-sys/HtmlElement && cargo add web-sys  --features   web-sys/KeyboardEvent && cargo add web-sys  --features   web-sys/console
+    - name: test
+      run: cargo test
