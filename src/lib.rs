@@ -17,13 +17,18 @@ use wasm_bindgen::prelude::*;
 use wasm_bindgen::{prelude::Closure, JsCast};
 
 use js_sys::{Array, Date};
-use web_sys::{console, Document, Element, HtmlElement, KeyboardEvent, Window};
+use web_sys::{console, Document, Element, HtmlElement, KeyboardEvent, Node, Window};
 
 // js_sys::eval("document.onkeydown = console.log");
 
 struct Timer {
     timer: i32,
     clear: Closure<dyn Fn(Window)>,
+}
+
+struct NodePos {
+    node: Element,
+    pos: Pos,
 }
 
 #[wasm_bindgen(start)]
@@ -41,7 +46,15 @@ fn run() -> Result<(), JsValue> {
 
     container.set_class_name("container");
 
-    container.append_with_node(&blocks.value()).unwrap();
+    let _ = container.append_with_node(
+        &blocks
+            .value()
+            .iter()
+            .map(|nodePos| nodePos.node.clone())
+            .collect(),
+    );
+
+    // container.append_with_node(&blocks.value()).unwrap();
     body.prepend_with_node_1(&container).unwrap();
 
     add_keydown_listener(&document, &tetris, &blocks);
@@ -50,7 +63,7 @@ fn run() -> Result<(), JsValue> {
     Ok(())
 }
 
-fn ticker(window: &Window, tetris: &State<Tetris>, blocks: &State<js_sys::Array>) -> Timer {
+fn ticker(window: &Window, tetris: &State<Tetris>, blocks: &State<Vec<NodePos>>) -> Timer {
     let mut tetris = tetris.clone();
     let blocks = blocks.clone();
     let t = Closure::<dyn FnMut()>::new(move || {
@@ -73,15 +86,15 @@ fn ticker(window: &Window, tetris: &State<Tetris>, blocks: &State<js_sys::Array>
     Timer { timer, clear }
 }
 
-fn append_blocks(document: &Document, tetris: &Tetris) -> js_sys::Array {
+fn append_blocks(document: &Document, tetris: &Tetris) -> Vec<NodePos> {
     tetris
         .iter_positions()
         .map(|pos| {
             let node = create_div(document, tetris.getPosition(pos));
             node.set_attribute("key", pos.key().as_str()).unwrap();
-            node
+            NodePos { node, pos }
         })
-        .collect::<Array>()
+        .collect::<Vec<NodePos>>()
 }
 
 fn create_div(document: &Document, text: &str) -> Element {
@@ -90,11 +103,7 @@ fn create_div(document: &Document, text: &str) -> Element {
     val
 }
 
-fn add_keydown_listener(
-    document: &Document,
-    tetris: &State<Tetris>,
-    blocks: &State<js_sys::Array>,
-) {
+fn add_keydown_listener(document: &Document, tetris: &State<Tetris>, blocks: &State<Vec<NodePos>>) {
     let mut tetris = tetris.clone();
     let blocks = blocks.clone();
 
@@ -140,33 +149,25 @@ fn add_keydown_listener(
     dyn_handle_keydown.forget();
 }
 
-fn update_dom(blocks: &State<Array>, tetris: &State<Tetris>) {
+fn update_dom(blocks: &State<Vec<NodePos>>, tetris: &State<Tetris>) {
     let current_shape = &tetris.value().current_shape;
     let fixed_shapes = &tetris.value().fixed_shapes;
 
-    blocks.value().iter().map(Element::from).for_each(|node| {
+    blocks.value().iter().for_each(|NodePos { node, pos }| {
         node.set_inner_html("");
-
         if current_shape
             .positions
             .iter()
-            .any(|pos| node.get_attribute("key").unwrap_or("null".to_string()) == pos.key())
+            .any(|p| p.0 == pos.0 && p.1 == pos.1)
         {
             node.set_inner_html(current_shape.typ);
         }
 
         fixed_shapes.iter().for_each(|shape| {
-            if shape
-                .positions
-                .iter()
-                .any(|pos| {
-                    node.get_attribute("key").unwrap_or("null".to_string()) == pos.key()
-                })
-            {
+            if shape.positions.iter().any(|p| p.0 == pos.0 && p.1 == pos.1) {
                 node.set_inner_html(shape.typ);
             }
         });
-
     })
 }
 
@@ -189,6 +190,5 @@ mod test {
             print!("{:#?}", t.current_shape);
             t
         });
-
     }
 }

@@ -30,4 +30,6 @@ jobs:
           cargo install wasm-pack
           cargo check
           cargo test
+          wasm-pack build --target web
+          tree
     
