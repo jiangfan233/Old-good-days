@@ -1,0 +1,14 @@
+{
+  "name": "tetris-rewrite",
+  "version": "0.1.0",
+  "files": [
+    "tetris_rewrite_bg.wasm",
+    "tetris_rewrite.js",
+    "tetris_rewrite.d.ts"
+  ],
+  "module": "tetris_rewrite.js",
+  "types": "tetris_rewrite.d.ts",
+  "sideEffects": [
+    "./snippets/*"
+  ]
+}
