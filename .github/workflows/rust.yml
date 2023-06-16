@@ -35,7 +35,7 @@ jobs:
         cargo test
 
     - name: wasm pack
-      wasm-pack build --target web
+    - run: wasm-pack build --target web
 
     - name: Upload artifact
         uses: actions/upload-pages-artifact@v1
