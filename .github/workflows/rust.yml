@@ -17,10 +17,39 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
+    # When rustup is updated, it tries to replace its binary, which on Windows is somehow locked.
+    # This can result in the CI failure, see: https://github.com/rust-lang/rustup/issues/3029
+    - run: |
+        rustup set auto-self-update disable
+        rustup toolchain install stable --profile minimal
+
+    - uses: ./
+
     - uses: Swatinem/rust-cache@v2
       with:
         key: ${{ hashFiles('**/Cargo.toml') }}
 
     - run: |
+        cargo install wasm-pack
         cargo check
         cargo test
+
+    - name: wasm pack
+      wasm-pack build --target web
+
+    - name: Upload artifact
+        uses: actions/upload-pages-artifact@v1
+        with:
+          path: ./docs
+
+    # Deployment job
+    deploy:
+      environment:
+        name: github-pages
+        url: ${{ steps.deployment.outputs.page_url }}
+      runs-on: ubuntu-latest
+      needs: build
+      steps:
+        - name: Deploy to GitHub Pages
+          id: deployment
+          uses: actions/deploy-pages@v2
