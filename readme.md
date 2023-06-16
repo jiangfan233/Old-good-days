@@ -1,5 +1,11 @@
 ### Keep hungry, keep stupid.
 
+##### install
+```bash
+cargo install wasm-pack && wasm-pack build --target web
+```
+
+
 ##### version: 0.5
 
 BUG: 
@@ -15,3 +21,5 @@ Seems i have to write use_state using rust!!!
 "My Tetris" has basic functions but lacks any optimization or beautification.
 
 these [vodeos](https://www.youtube.com/playlist?list=PLtTT8p-gjGEdGzZ0ET2bwNnA6iP_mmmrv) helped me so much, thanks a lot.
+
+
