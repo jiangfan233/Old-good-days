@@ -1,7 +1,7 @@
-use wasm_bindgen::prelude::wasm_bindgen;
-use web_sys::console;
 
-use crate::{pos::Pos, shape::Shape, persist::{Persist, PersistedOrigin}};
+use crate::TetrisLib::{pos::Pos, shape::Shape};
+use crate::StateLib::persist::{PersistedOrigin, Persist};
+
 use std::mem::replace;
 
 pub enum Direction {
@@ -19,7 +19,7 @@ pub struct Tetris {
 }
 
 impl Persist for Tetris {
-    fn ptr(&self) -> crate::persist::PersistedOrigin {
+    fn ptr(&self) -> crate::StateLib::persist::PersistedOrigin {
         PersistedOrigin
     }
 }
@@ -154,11 +154,11 @@ impl Tetris {
             .fixed_shapes
             .iter()
             .find(|shape| shape.positions.iter().any(|p| p.0 == pos.0 && p.1 == pos.1));
-        if res.is_some() {
-            return res.unwrap().typ;
+        if let Some(shape) = res {
+            return shape.typ;
         }
 
-        return "";
+        ""
     }
 
     pub fn iter_positions(&self) -> impl Iterator<Item = Pos> {
@@ -171,7 +171,7 @@ impl Tetris {
 }
 
 mod test {
-    use crate::tetris::Tetris;
+    use crate::TetrisLib::tetris::Tetris;
 
     #[test]
     fn testNewTetris() {

@@ -1,6 +1,6 @@
 use std::{cell::{RefCell, Ref, RefMut}, rc::Rc};
 
-use crate::persist::{Persist, PersistedOrigin};
+use crate::StateLib::persist::{Persist, PersistedOrigin};
 
 
 #[derive(Debug)]
@@ -34,7 +34,7 @@ impl<T> Clone for RefContainer<T> {
 
 
 impl<T: 'static> Persist for RefContainer<T> {
-    fn ptr(&self) -> crate::persist::PersistedOrigin {
+    fn ptr(&self) -> PersistedOrigin {
         PersistedOrigin
     }
 }

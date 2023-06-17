@@ -1,5 +1,5 @@
 use rand::random;
-use crate::pos::Pos;
+use crate::TetrisLib::pos::Pos;
 use std::{collections::HashSet, ops::Add};
 
 
@@ -111,7 +111,7 @@ impl Shape {
 }
 
 mod tests {
-    use crate::shape::Shape;
+    use crate::TetrisLib::shape::Shape;
 
     #[test]
     fn test() {
