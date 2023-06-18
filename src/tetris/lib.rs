@@ -5,6 +5,7 @@ mod tetris;
 
 
 use pos::Pos;
+use crate::DomLib::domtools::{create_div, DomElements};
 use crate::StateLib::state::{use_state, State};
 use std::convert::AsRef;
 use tetris::{Direction, Tetris};
@@ -25,19 +26,20 @@ struct NodePos {
     pos: Pos,
 }
 
-pub fn run_tetris() -> Result<(), JsValue> {
-    let window = web_sys::window().expect("should have a window in this context");
-    let document = window.document().expect("window should have a document");
-
-    let body = document.body().unwrap();
+pub fn run_tetris(domElements: &DomElements) -> Result<(), JsValue> {
+    let DomElements{
+        window,
+        document,
+        body,
+     } = domElements;
 
     let tetris = use_state(Tetris::default);
-
-    let container = create_div(&document, "");
-
     let blocks = use_state(|| append_blocks(&document, &tetris.value()));
 
-    container.set_class_name("container");
+    let container = create_div(&document, "");
+    container.set_id("tetris");
+    container.set_class_name("tetris-container");
+    
 
     let _ = container.append_with_node(
         &blocks
@@ -90,11 +92,6 @@ fn append_blocks(document: &Document, tetris: &Tetris) -> Vec<NodePos> {
         .collect::<Vec<NodePos>>()
 }
 
-fn create_div(document: &Document, text: &str) -> Element {
-    let val = document.create_element("div").unwrap();
-    val.set_text_content(Some(text));
-    val
-}
 
 fn add_keydown_listener(document: &Document, tetris: &State<Tetris>, blocks: &State<Vec<NodePos>>) {
     let mut tetris = tetris.clone();

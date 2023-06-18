@@ -1,11 +1,25 @@
 
 html {
-    font-size: 1.5rem;
+    font-size: 1.2rem;
 }
 
-.container {
+body {
+    display: flex;
+    gap: 2rem;
+    align-items: center;
+    justify-content: space-around;
+}
+
+.tetris-container {
     background-color: antiquewhite;
     display: grid;
     grid-template: repeat(25, 1rem) / repeat(10, 1rem);
+    width: fit-content;
+}
+
+.snake-container {
+    background-color: antiquewhite;
+    display: grid;
+    grid-template: repeat(30, 1rem) / repeat(30, 1rem);
     width: fit-content;
 }
