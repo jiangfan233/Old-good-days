@@ -21,10 +21,15 @@ use wasm_bindgen::prelude::wasm_bindgen;
 
 
 
-#[wasm_bindgen(start)]
-fn run() {
+#[wasm_bindgen]
+pub fn init_tetris() {
     let domElements = init_dom();
 
-    // let _ = run_tetris(&domElements);
+    let _ = run_tetris(&domElements);
+}
+
+#[wasm_bindgen]
+pub fn init_snake() {
+    let domElements = init_dom();
     run_snake(&domElements);
 }

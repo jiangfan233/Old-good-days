@@ -1,4 +1,4 @@
-use std::{ops::Mul, mem::swap};
+use std::ops::Mul;
 
 use js_sys::Math::random;
 
@@ -51,6 +51,9 @@ impl GameBoard<'_> {
     }
 
     pub fn try_move(&mut self, direction: Direction) {
+        if self.is_failed {
+            return;
+        }
         let next = match direction {
             Direction::Down => Pos(0, 1),
             Direction::Up => Pos(0, -1),
@@ -95,6 +98,9 @@ impl GameBoard<'_> {
     pub fn get_position(&self, pos: &Pos) -> &str {
         if self.food.pos == *pos {
             return self.food.food_color;
+        }
+        if self.snake.positions.front().unwrap() == pos {
+            return self.snake.head_color;
         }
         if self
             .snake

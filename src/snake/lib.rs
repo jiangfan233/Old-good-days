@@ -28,9 +28,9 @@ pub fn run_snake(domElements: &DomElements) {
         body,
     } = domElements;
     let gameboard = use_state(|| GameBoard::new(30, 30));
-    let blocks = use_state(|| append_blocks(&document, &gameboard.value()));
+    let blocks = use_state(|| append_blocks(document, &gameboard.value()));
 
-    let container = create_div(&document, "");
+    let container = create_div(document, "");
     container.set_id("snake");
     container.set_class_name("snake-container");
 
@@ -43,7 +43,7 @@ pub fn run_snake(domElements: &DomElements) {
     );
 
     body.prepend_with_node_1(&container).unwrap();
-    add_keydown_listener(&document, &gameboard, &blocks);
+    add_keydown_listener(document, &gameboard, &blocks);
 }
 
 fn add_keydown_listener(
@@ -101,7 +101,10 @@ fn update_dom(blocks: &State<Vec<NodePos>>, gameboard: &State<GameBoard<'_>>) {
             nodePos
                 .node
                 .set_inner_html(gameboard.value().food.food_color);
-        } else if gameboard.value().snake.positions.contains(&nodePos.pos) {
+        } else if gameboard.value().snake.positions.front().unwrap() == &nodePos.pos {
+            nodePos.node.set_inner_html(gameboard.value().snake.head_color);
+        } 
+        else if gameboard.value().snake.positions.contains(&nodePos.pos) {
             nodePos.node.set_inner_html(gameboard.value().snake.color);
         } else {
             nodePos.node.set_inner_html("");

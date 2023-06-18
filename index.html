@@ -9,12 +9,43 @@
 </head>
 <body>
     
+    <ul>
+        <li><button data-key="tetris" class="active button">Tetris</button></li>
+        <li><button data-key="snake"  class="button">Snake</button></li>
+    </ul>
+
     <script type="module">
-        import init, { run } from "./docs/tetris_rewrite.js";
+        import init, { init_tetris, init_snake } from "./docs/tetris_rewrite.js";
         
         await init();
+        
+        // let ids = ["tetris", "snake"];
+        // const buttons = document.querySelectorAll(".button");
 
-        // run();
+        // const handleView = (id) => {
+        //     ids.forEach(id => {
+        //         document.querySelector(`#${id}`).style = "display: hidden";
+        //     })
+        //     document.querySelector(`#${id}`).style = "display: unset;";
+        // } 
+
+        // const handleClick = (e, index) => {
+        //     let id = e.target.dataset.key;
+        //     switch (index) {
+        //         case 0:
+        //             init_snake();
+        //         case 1:
+        //             init_tetris();
+        //     }
+        //     handleView(id);
+        // } 
+
+        // buttons.forEach((button, index) => {
+        //     button.addEventListener("click", (e) => handleClick(e, index))
+        // })
+
+        // init_tetris();
+        init_snake()
 
 
     </script>

@@ -8,7 +8,8 @@ use super::{pos::Pos, gameboard::Direction, food::Food};
 pub struct Snake<'a> {
     pub positions: VecDeque<Pos>,
     pub is_dead: bool,
-    pub color: &'a str
+    pub color: &'a str,
+    pub head_color: &'a str,
 }
 
 impl Add<Pos> for Snake<'_> {
@@ -19,8 +20,7 @@ impl Add<Pos> for Snake<'_> {
         positions.push_front(next_head);
         Self {
             positions,
-            color: self.color,
-            is_dead: self.is_dead
+            ..self
         }
     }
 }
@@ -31,7 +31,8 @@ impl Snake<'_> {
         Self {
             positions: VecDeque::from(positions),
             is_dead: false,
-            color: "🟥"
+            color: "🟥",
+            head_color: "🔴"
         }
     }
 
@@ -50,12 +51,13 @@ impl Snake<'_> {
             self.is_dead = true;
             return;
         }
-        let mut new_snake = self.clone() + next;
+
+        let mut new_positions = self.positions.clone();
+        new_positions.push_front(head_next_position);
         if head_next_position != food.pos {
-            new_snake.positions.pop_back();
+            new_positions.pop_back();
         } 
-        swap(self, &mut new_snake);
-        
+        self.positions = new_positions;
     }
 
     pub fn is_eat_self(&self, head_next_position: &Pos) -> bool {
