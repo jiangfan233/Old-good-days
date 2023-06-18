@@ -51,12 +51,10 @@ impl Snake<'_> {
             return;
         }
         let mut new_snake = self.clone() + next;
-        if next == food.pos {
-            swap(self, &mut new_snake)
-        } else {
+        if head_next_position != food.pos {
             new_snake.positions.pop_back();
-            swap(self, &mut new_snake);
-        }
+        } 
+        swap(self, &mut new_snake);
         
     }
 

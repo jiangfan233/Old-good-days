@@ -1,4 +1,4 @@
-use std::ops::Mul;
+use std::{ops::Mul, mem::swap};
 
 use js_sys::Math::random;
 
@@ -40,8 +40,8 @@ impl GameBoard<'_> {
         }
     }
 
-    fn new_food(&self) -> Food {
-        Food {
+    fn refresh_food(&mut self) {
+        self.food = Food {
             pos: Pos(
                 random().mul(self.width as f64).floor() as i32,
                 random().mul(self.height as f64).floor() as i32
@@ -61,8 +61,15 @@ impl GameBoard<'_> {
 
         let head_next_position = self.snake.positions.front().unwrap() + &next;
 
-        if self.is_in_bounds(head_next_position) && !self.snake.is_eat_self(&head_next_position) {
+        if self.snake.positions.get(1).unwrap() == &head_next_position {
+            return;
+        }
+
+        if self.is_in_bounds(head_next_position) {
             self.snake.try_move(direction, &self.food);
+            if head_next_position == self.food.pos {
+                self.refresh_food();
+            }
         } else {
             self.is_failed = true;
             self.snake.is_dead = true;
